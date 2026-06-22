@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "node server/index.js",
+    "server": "server/venv/bin/python server/main.py",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
