@@ -1345,11 +1345,40 @@
           try {
             const response = await fetch('/api/library');
             if (!response.ok) throw new Error('Failed to fetch library from server');
-            this.library = await response.json();
+            let serverLibrary = await response.json();
+            
+            // Check local fallback and merge if necessary
+            const localFallbackStr = localStorage.getItem('gt_library_fallback');
+            if (localFallbackStr) {
+              try {
+                const localLibrary = JSON.parse(localFallbackStr);
+                if (Array.isArray(localLibrary) && localLibrary.length > 0) {
+                  // Merge: keep all server games, and add any local games that aren't on the server
+                  let merged = [...serverLibrary];
+                  let changed = false;
+                  for (const localGame of localLibrary) {
+                    if (!merged.some(g => g.id === localGame.id)) {
+                      merged.push(localGame);
+                      changed = true;
+                    }
+                  }
+                  if (changed) {
+                    console.log("Merged local storage games into server library:", merged);
+                    this.library = merged;
+                    await this.saveLibraryData(); // sync back to server JSON file!
+                    this.shuffleSuggestions();
+                    return;
+                  }
+                }
+              } catch (e) {
+                console.error("Failed to parse local fallback:", e);
+              }
+            }
+            
+            this.library = serverLibrary;
             this.shuffleSuggestions();
           } catch (err) {
             console.error(err);
-            // Local fallback
             const localFallback = localStorage.getItem('gt_library_fallback');
             if (localFallback) {
               this.library = JSON.parse(localFallback);
