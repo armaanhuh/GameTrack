@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GameTrack — Premium Backlog Registry</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            accent: 'var(--color-accent)',
+            'accent-hover': 'var(--color-accent-hover)',
+            bg: 'var(--color-bg)',
+            surface: 'var(--color-surface)',
+            border: 'var(--color-border)',
+            text: 'var(--color-text)',
+            'text-secondary': 'var(--color-text-secondary)',
+            'status-backlog': 'var(--color-status-backlog)',
+            'status-playing': 'var(--color-status-playing)',
+            'status-completed': 'var(--color-status-completed)',
+            'status-multiplayer': 'var(--color-status-multiplayer)',
+            'status-endless': 'var(--color-status-endless)',
+            'status-onhold': 'var(--color-status-onhold)',
+            'status-dropped': 'var(--color-status-dropped)',
+          },
+          fontFamily: {
+            display: ['Playfair Display', 'serif'],
+            sans: ['DM Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Global Custom Styles matching the React app -->
+  <style>
+    :root {
+      --font-display: 'Playfair Display', serif;
+      --font-body: 'DM Sans', sans-serif;
+
+      --color-accent: #e87c3a;
+      --color-accent-hover: #cf6a28;
+
+      /* Dark Theme (Default) */
+      --color-bg: #0f0f0f;
+      --color-surface: #141414;
+      --color-border: #222222;
+      --color-text: #e5e5e5;
+      --color-text-secondary: #999999;
+
+      /* Status Colors */
+      --color-status-backlog: #888888;
+      --color-status-playing: #3b82f6;
+      --color-status-completed: #22c55e;
+      --color-status-multiplayer: #a855f7;
+      --color-status-endless: #ec4899;
+      --color-status-onhold: #eab308;
+      --color-status-dropped: #ef4444;
+    }
+
+    .light {
+      --color-bg: #fafafa;
+      --color-surface: #ffffff;
+      --color-border: #e5e5e5;
+      --color-text: #1a1a1a;
+      --color-text-secondary: #666666;
+    }
+
+    html {
+      overflow-y: scroll;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      transition: background-color 0.2s ease, color 0.2s ease;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-display);
+    }
+
+    /* Custom Webkit Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--color-bg);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-border);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-accent);
+    }
+
+    button, a, input, select, textarea {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M7 9l3 3 3-3' stroke='%23999999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-position: right 10px center;
+      background-size: 14px 14px;
+      background-repeat: no-repeat;
+      padding-right: 2rem !important;
+    }
+
+    select::-ms-expand {
+      display: none;
+    }
+
+    /* Premium Animations */
+    @keyframes fadeInSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-page-in {
+      animation: fadeInSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.96) translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    .animate-scale-in {
+      animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes backdropFadeIn {
+      from {
+        background-color: rgba(0, 0, 0, 0);
+        backdrop-filter: blur(0px);
+      }
+      to {
+        background-color: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(12px);
+      }
+    }
+    .animate-backdrop-in {
+      animation: backdropFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes dropdownIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-dropdown-in {
+      animation: dropdownIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Hide spin buttons globally on number inputs */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  </style>
+</head>
+<body x-data="gameTrack()" x-init="init()" class="min-h-screen bg-bg text-text flex flex-col font-sans">
+
+  <!-- API Key Setup (Shown if API key is not configured) -->
+  <template x-if="!hasApiKey">
+    <div class="min-h-screen bg-bg text-text flex items-center justify-center font-sans p-6">
+      <div class="w-full max-w-md border border-border bg-surface p-8 space-y-6 text-center animate-page-in">
+        <div class="space-y-2">
+          <h1 class="text-3xl font-display font-bold text-accent">GameTrack</h1>
+          <p class="text-xs uppercase tracking-widest text-text-secondary">Premium Backlog Registry Setup</p>
+        </div>
+        
+        <p class="text-xs text-text-secondary leading-relaxed">
+          Welcome to GameTrack. To query games, metadata, and metacritic metrics, you need a free **RAWG API Key**.
+        </p>
+
+        <div class="space-y-4">
+          <div class="space-y-1 text-left">
+            <label class="text-[10px] uppercase tracking-widest text-text-secondary font-semibold">RAWG API Key</label>
+            <input
+              type="password"
+              x-model="apiKeyInput"
+              placeholder="Paste your key here"
+              class="w-full bg-bg border border-border text-xs px-3 py-2 text-text focus:outline-none focus:border-accent font-mono"
+            />
+          </div>
+          
+          <button
+            @click="saveApiKeyFromSetup()"
+            class="w-full py-2 border border-accent bg-accent/10 text-accent hover:bg-accent hover:text-white text-xs uppercase tracking-widest font-semibold transition-all"
+          >
+            Access Registry
+          </button>
+        </div>
+
+        <p class="text-[10px] text-text-secondary">
+          Don't have a key? Register in 2 minutes at <a href="https://rawg.io/apikeys" target="_blank" class="text-accent hover:underline">rawg.io/apikeys</a>.
+        </p>
+      </div>
+    </div>
+  </template>
+
+  <!-- Main App View -->
+  <template x-if="hasApiKey">
+    <div class="flex-1 flex flex-col min-h-screen">
+      <!-- Loading Spinner overlay -->
+      <div x-show="isLoading" class="fixed inset-0 bg-bg/80 z-[200] flex items-center justify-center">
+        <div class="text-center space-y-4">
+          <div class="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p class="text-[10px] uppercase tracking-widest text-text-secondary">Syncing gaming database...</p>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <header class="sticky top-0 z-50 w-full border-b border-border bg-bg/80 backdrop-blur-md">
+        <div class="w-full px-6 md:px-10 h-16 flex items-center justify-between relative">
+          
+          <!-- Logo -->
+          <div class="flex-shrink-0 z-10">
+            <a @click.prevent="currentTab = 'dashboard'" href="#/dashboard" class="flex items-center space-x-2 text-2xl font-display font-semibold tracking-tight hover:opacity-85">
+              <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 01-.657.643 48.39 48.39 0 01-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 01-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 00-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 01-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 00.657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959v0c0 .333.277.599.61.58a48.1 48.1 0 005.427-.63 48.05 48.05 0 00.582-4.717.532.532 0 00-.533-.57v0c-.355 0-.676.186-.959-.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.959.401v0a.656.656 0 00.658-.663 48.422 48.422 0 00-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 01-.61-.58v0z" />
+              </svg>
+              <span>Game<span class="text-accent">Track</span></span>
+            </a>
+          </div>
+
+          <!-- Center Navigation -->
+          <nav class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center space-x-8 z-0">
+            <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text hover:border-text-secondary/50'" class="flex items-center space-x-1.5 text-xs uppercase tracking-widest py-1 border-b font-medium transition-all">
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+              <span>Dashboard</span>
+            </button>
+            <button @click="currentTab = 'library'" :class="currentTab === 'library' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text hover:border-text-secondary/50'" class="flex items-center space-x-1.5 text-xs uppercase tracking-widest py-1 border-b font-medium transition-all">
+              <i data-lucide="clipboard-list" class="w-3.5 h-3.5"></i>
+              <span>Backlog</span>
+            </button>
+            <button @click="currentTab = 'platforms'" :class="currentTab === 'platforms' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text hover:border-text-secondary/50'" class="flex items-center space-x-1.5 text-xs uppercase tracking-widest py-1 border-b font-medium transition-all">
+              <i data-lucide="monitor" class="w-3.5 h-3.5"></i>
+              <span>Platforms</span>
+            </button>
+            <button @click="currentTab = 'analytics'" :class="currentTab === 'analytics' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text hover:border-text-secondary/50'" class="flex items-center space-x-1.5 text-xs uppercase tracking-widest py-1 border-b font-medium transition-all">
+              <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
+              <span>Analytics</span>
+            </button>
+          </nav>
+
+          <!-- Right Actions -->
+          <div class="flex items-center space-x-4 z-10">
+            <!-- Search Trigger -->
+            <button @click="searchOpen = true" class="flex items-center space-x-3 px-3 py-1.5 border border-border bg-surface text-text-secondary hover:border-accent hover:text-text rounded-full text-xs font-sans">
+              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+              <span>Search games...</span>
+              <kbd class="hidden sm:inline-block border border-border bg-bg px-1.5 py-0.5 rounded text-[10px] font-mono leading-none">⌘K</kbd>
+            </button>
+
+            <!-- Preferences Gear Dropdown -->
+            <div class="relative" @click.away="showSettings = false">
+              <button @click="showSettings = !showSettings" class="p-2 border bg-surface hover:border-accent hover:text-accent rounded-md text-text-secondary transition-colors group" :class="showSettings ? 'border-accent text-accent' : 'border-border'">
+                <i data-lucide="settings" class="w-4 h-4 group-hover:rotate-45 transition-transform duration-300"></i>
+              </button>
+
+              <div x-show="showSettings" x-transition class="absolute right-0 mt-3 w-80 bg-surface/95 backdrop-blur-md border border-border p-5 shadow-2xl z-50 text-left font-sans rounded-sm animate-dropdown-in">
+                <!-- Settings Header -->
+                <div class="flex justify-between items-center border-b border-border pb-3 mb-4">
+                  <h3 class="text-xs uppercase tracking-widest font-bold text-text">Preferences</h3>
+                  <button @click="showSettings = false" class="text-text-secondary hover:text-text transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                </div>
+
+                <div class="space-y-5">
+                  <!-- Theme -->
+                  <div class="space-y-2">
+                    <label class="text-[10px] uppercase tracking-widest text-text-secondary font-semibold">Appearance</label>
+                    <div class="flex items-center justify-between bg-bg/50 border border-border p-2 rounded-sm">
+                      <span class="text-xs text-text">Theme Mode</span>
+                      <button @click="toggleTheme()" class="flex items-center space-x-1.5 px-3 py-1 border border-border bg-surface hover:border-accent hover:text-text rounded-sm text-xs transition-colors">
+                        <template x-if="theme === 'dark'">
+                          <span class="flex items-center space-x-1.5">
+                            <i data-lucide="sun" class="w-3.5 h-3.5 text-amber-500"></i>
+                            <span>Dark Mode</span>
+                          </span>
+                        </template>
+                        <template x-if="theme === 'light'">
+                          <span class="flex items-center space-x-1.5">
+                            <i data-lucide="moon" class="w-3.5 h-3.5 text-indigo-400"></i>
+                            <span>Light Mode</span>
+                          </span>
+                        </template>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- API Key -->
+                  <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                      <label class="text-[10px] uppercase tracking-widest text-text-secondary font-semibold">RAWG API Key</label>
+                      <span x-show="apiKeySaved" class="text-[10px] text-green-500 font-medium flex items-center gap-0.5">
+                        <i data-lucide="check" class="w-3 h-3"></i> Saved
+                      </span>
+                    </div>
+                    <div class="flex gap-2">
+                      <input type="password" x-model="tempApiKey" placeholder="Enter API Key" class="flex-1 bg-bg border border-border text-xs px-2.5 py-1.5 text-text focus:outline-none focus:border-accent font-mono rounded-sm" />
+                      <button @click="saveApiKey()" class="border border-border bg-surface hover:border-accent hover:text-accent px-3 py-1.5 text-xs font-semibold rounded-sm transition-colors">Save</button>
+                    </div>
+                  </div>
+
+                  <!-- Backup Management -->
+                  <div class="space-y-2 border-t border-border/60 pt-4">
+                    <label class="text-[10px] uppercase tracking-widest text-text-secondary font-semibold">Data Management</label>
+                    <p x-show="importError" x-text="importError" class="text-[10px] text-red-500 border border-red-500/20 bg-red-500/5 p-2 rounded-sm mb-2"></p>
+                    <p x-show="importSuccess" class="text-[10px] text-green-500 border border-green-500/20 bg-green-500/5 p-2 rounded-sm flex items-center gap-1 mb-2">
+                      <i data-lucide="check" class="w-3.5 h-3.5 shrink-0"></i> Library imported successfully!
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <button @click="exportLibrary()" class="flex items-center justify-center space-x-1.5 border border-border bg-bg hover:border-accent hover:text-accent py-2 text-[9px] uppercase tracking-widest font-semibold transition-colors rounded-sm">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Export</span>
+                      </button>
+                      <button @click="$refs.fileInput.click()" class="flex items-center justify-center space-x-1.5 border border-border bg-bg hover:border-accent hover:text-accent py-2 text-[9px] uppercase tracking-widest font-semibold transition-colors rounded-sm">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                        <span>Import</span>
+                      </button>
+                      <input type="file" x-ref="fileInput" @change="importLibraryFile($event)" accept=".json" class="hidden" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content Container -->
+      <main class="flex-1 w-full px-6 md:px-10 py-10">
+        <div x-show="error" x-text="error" class="mb-6 p-4 border border-red-500/20 bg-red-500/5 text-red-400 text-sm text-center"></div>
+
+        <!-- Tab 1: Dashboard -->
+        <div x-show="currentTab === 'dashboard'" class="animate-page-in space-y-12">
+          <!-- Page Title -->
+          <div class="border-b border-border pb-6">
+            <h1 class="text-4xl font-display font-bold text-text mb-2">Editorial Desk</h1>
+            <p class="text-text-secondary text-sm">A summary of your gaming catalog, active pursuits, and history.</p>
+          </div>
+
+          <!-- Editorial Stat Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border border border-border">
+            <div class="bg-surface p-6 text-center flex flex-col justify-between items-center">
+              <i data-lucide="folder-open" class="w-5 h-5 text-text-secondary mb-2"></i>
+              <p class="text-[10px] uppercase tracking-widest text-text-secondary mb-2">Total Catalog</p>
+              <p class="text-4xl font-display font-medium text-text" x-text="library.length"></p>
+              <p class="text-[10px] text-text-secondary mt-1">games registered</p>
+            </div>
+            
+            <div class="bg-surface p-6 text-center flex flex-col justify-between items-center">
+              <i data-lucide="play" class="w-5 h-5 text-accent mb-2"></i>
+              <p class="text-[10px] uppercase tracking-widest text-text-secondary mb-2">Active Play</p>
+              <p class="text-4xl font-display font-medium text-accent" x-text="library.filter(g => g.status === 'playing').length"></p>
+              <p class="text-[10px] text-text-secondary mt-1">currently playing</p>
+            </div>
+
+            <div class="bg-surface p-6 text-center flex flex-col justify-between items-center">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-status-completed mb-2"></i>
+              <p class="text-[10px] uppercase tracking-widest text-text-secondary mb-2">Archived/Finished</p>
+              <p class="text-4xl font-display font-medium text-text" x-text="library.filter(g => g.status === 'completed').length"></p>
+              <p class="text-[10px] text-text-secondary mt-1">games completed</p>
+            </div>
+
+            <div class="bg-surface p-6 text-center flex flex-col justify-between items-center">
+              <i data-lucide="clock" class="w-5 h-5 text-text-secondary mb-2"></i>
+              <p class="text-[10px] uppercase tracking-widest text-text-secondary mb-2">Time Invested</p>
+              <p class="text-4xl font-display font-medium text-text" x-text="formatPlaytime(library.reduce((sum, g) => sum + Number(g.playtimeHours || 0), 0))"></p>
+              <p class="text-[10px] text-text-secondary mt-1">total playtime</p>
+            </div>
+
+            <div class="bg-surface p-6 text-center col-span-2 lg:col-span-1 flex flex-col justify-between items-center">
+              <i data-lucide="flame" class="w-5 h-5 text-status-onhold mb-2"></i>
+              <p class="text-[10px] uppercase tracking-widest text-text-secondary mb-2">Streak / Rate</p>
+              <p class="text-4xl font-display font-medium text-text">
+                <span x-text="calculatePlayingStreak() + 'd'"></span>
+                <span class="text-sm font-sans text-text-secondary">/ <span x-text="calculateCompletionRate() + '%'"></span></span>
+              </p>
+              <p class="text-[10px] text-text-secondary mt-1">active days & completion</p>
+            </div>
+          </div>
+
+          <!-- Main Grid: Recent Activity & Suggestions -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Recent Activity -->
+            <div class="lg:col-span-2 space-y-6">
+              <h2 class="text-xl font-display font-semibold border-b border-border pb-2">Recent Activity Registry</h2>
+              <template x-if="getRecentActivity().length === 0">
+                <div class="py-12 border border-border border-dashed text-center text-text-secondary text-sm">
+                  No recent logged registry items. Try searching for a game to add.
+                </div>
+              </template>
+              <template x-if="getRecentActivity().length > 0">
+                <div class="border border-border bg-surface divide-y divide-border">
+                  <template x-for="act in getRecentActivity()" :key="act.id">
+                    <div @click="openGameById(act.gameId)" class="flex items-center justify-between p-4 hover:bg-bg/40 cursor-pointer group transition-colors">
+                      <div class="flex items-center space-x-4">
+                        <span class="w-2 h-2 rounded-full" :class="act.type === 'completed' ? 'bg-status-completed' : (act.type === 'rated' ? 'bg-status-onhold' : 'bg-status-backlog')"></span>
+                        <p class="text-sm text-text font-sans group-hover:text-accent transition-colors" x-text="act.description"></p>
+                      </div>
+                      <span class="text-xs text-text-secondary font-mono" x-text="formatActivityDate(act.dateStr)"></span>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+
+            <!-- Suggestions -->
+            <div class="space-y-6">
+              <div class="flex justify-between items-center border-b border-border pb-2">
+                <h2 class="text-xl font-display font-semibold">What to Play Tonight?</h2>
+                <button @click="shuffleSuggestions()" class="text-[10px] uppercase tracking-widest text-text-secondary hover:text-accent flex items-center gap-1">
+                  <i data-lucide="refresh-cw" class="w-3 h-3"></i> Reshuffle
+                </button>
+              </div>
+
+              <template x-if="suggestions.length === 0">
+                <div class="py-12 border border-border border-dashed text-center text-text-secondary text-sm">
+                  Your backlog is clear! Search and add some games to get recommendations.
+                </div>
+              </template>
+              <template x-if="suggestions.length > 0">
+                <div class="space-y-4">
+                  <template x-for="game in suggestions" :key="game.id">
+                    <div class="border border-border bg-surface p-5 hover:border-accent group transition-all duration-200">
+                      <h3 class="font-display text-lg text-text group-hover:text-accent font-semibold transition-colors mb-1" x-text="game.title"></h3>
+                      
+                      <div class="flex items-center space-x-3 text-xs text-text-secondary mb-3">
+                        <span x-text="game.year"></span>
+                        <template x-if="game.metacritic">
+                          <span class="flex items-center gap-1">
+                            <span>•</span>
+                            <span class="font-semibold text-text font-mono">Metacritic: <span x-text="game.metacritic"></span></span>
+                          </span>
+                        </template>
+                      </div>
+                      
+                      <p class="text-xs text-text-secondary line-clamp-3 mb-4 leading-relaxed" x-text="game.synopsis"></p>
+
+                      <button @click="selectedGame = JSON.parse(JSON.stringify(game)); confirmDelete = false;" class="w-full text-center border border-border hover:border-accent hover:text-accent text-[10px] uppercase tracking-widest font-medium py-1.5 transition-colors">
+                        Open Details
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Backlog Registry -->
+        <div x-show="currentTab === 'library'" class="animate-page-in space-y-8">
+          <!-- Header -->
+          <div class="border-b border-border pb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <h1 class="text-4xl font-display font-bold text-text mb-2">Backlog Registry</h1>
+              <p class="text-text-secondary text-sm">Review, filter, and sort your gaming library collection.</p>
+            </div>
+            <div class="text-xs text-text-secondary font-mono">
+              Showing <span x-text="filteredGames().length"></span> of <span x-text="library.length"></span> games
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 border border-border bg-surface p-4">
+            <div class="space-y-1">
+              <label class="text-[10px] uppercase tracking-widest text-text-secondary">Search Title</label>
+              <input type="text" x-model="localFilterQuery" placeholder="Type name..." class="w-full border border-border bg-bg text-text text-xs py-2 px-3 focus:outline-none focus:border-accent" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[10px] uppercase tracking-widest text-text-secondary">Filter Status</label>
+              <select x-model="filterStatus" class="w-full border border-border bg-bg text-text text-xs py-2 px-3 focus:outline-none focus:border-accent cursor-pointer">
+                <option value="all">All Statuses</option>
+                <option value="backlog">Backlog</option>
+                <option value="playing">Playing</option>
+                <option value="completed">Completed</option>
+                <option value="multiplayer">Multiplayer</option>
+                <option value="endless">Endless</option>
+                <option value="onhold">On Hold</option>
+                <option value="dropped">Dropped</option>
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[10px] uppercase tracking-widest text-text-secondary">Filter Platform</label>
+              <select x-model="filterPlatform" class="w-full border border-border bg-bg text-text text-xs py-2 px-3 focus:outline-none focus:border-accent cursor-pointer">
+                <option value="all">All Platforms</option>
+                <option value="steam">Steam</option>
+                <option value="epic">Epic Games</option>
+                <option value="xbox">Xbox</option>
+                <option value="ea">EA App</option>
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[10px] uppercase tracking-widest text-text-secondary">Sort By</label>
+              <select x-model="sortKey" class="w-full border border-border bg-bg text-text text-xs py-2 px-3 focus:outline-none focus:border-accent cursor-pointer">
+                <option value="dateAddedDesc">Date Added (Newest)</option>
+                <option value="dateAddedAsc">Date Added (Oldest)</option>
+                <option value="alphabetical">Alphabetical (A-Z)</option>
+                <option value="metacritic">Metacritic Score</option>
+                <option value="playtime">Playtime Hours</option>
+                <option value="rating">Your Rating</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Spreadsheet table -->
+          <div class="border border-border bg-surface overflow-x-auto">
+            <table class="w-full min-w-[700px] border-collapse text-left text-sm">
+              <thead>
+                <tr class="border-b border-border bg-bg/50">
+                  <th class="py-3 px-6 text-[10px] uppercase tracking-widest text-text-secondary font-semibold w-2/5">Title & Year</th>
+                  <th class="py-3 px-4 text-[10px] uppercase tracking-widest text-text-secondary font-semibold text-center w-1/12">Metacritic</th>
+                  <th class="py-3 px-4 text-[10px] uppercase tracking-widest text-text-secondary font-semibold w-1/5">Platforms Owned</th>
+                  <th class="py-3 px-4 text-[10px] uppercase tracking-widest text-text-secondary font-semibold text-center w-1/10">Status</th>
+                  <th class="py-3 px-4 text-[10px] uppercase tracking-widest text-text-secondary font-semibold text-center w-1/12">Playtime</th>
+                  <th class="py-3 px-6 text-[10px] uppercase tracking-widest text-text-secondary font-semibold text-center w-1/12">Rating</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border">
+                <template x-if="filteredGames().length === 0">
+                  <tr>
+                    <td colSpan="6" class="py-12 text-center text-text-secondary font-sans">No games found matching the criteria.</td>
+                  </tr>
+                </template>
+                <template x-for="game in filteredGames()" :key="game.id">
+                  <tr @click="selectedGame = JSON.parse(JSON.stringify(game)); confirmDelete = false;" class="hover:bg-bg/40 cursor-pointer group transition-colors">
+                    <td class="py-4 px-6">
+                      <div class="font-semibold text-text group-hover:text-accent transition-colors truncate max-w-md" x-text="game.title"></div>
+                      <div x-show="game.year" class="text-xs text-text-secondary mt-0.5 font-mono">Released <span x-text="game.year"></span></div>
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                      <template x-if="game.metacritic">
+                        <span class="inline-block border border-border px-1.5 py-0.5 rounded font-mono font-bold text-xs text-text bg-bg" x-text="game.metacritic"></span>
+                      </template>
+                      <template x-if="!game.metacritic">
+                        <span class="text-text-secondary text-xs font-mono">—</span>
+                      </template>
+                    </td>
+                    <td class="py-4 px-4">
+                      <div class="flex flex-wrap gap-1">
+                        <template x-if="!game.platformsOwned || game.platformsOwned.length === 0">
+                          <span class="text-text-secondary text-xs font-mono">—</span>
+                        </template>
+                        <template x-for="plat in game.platformsOwned" :key="plat">
+                          <span class="text-[9px] uppercase tracking-wider border border-border px-1.5 py-0.5 bg-bg/50 text-text-secondary font-medium font-sans" x-text="getPlatformLabel(plat)"></span>
+                        </template>
+                      </div>
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                      <span class="inline-block border text-[10px] uppercase tracking-wider px-2.5 py-0.5 font-semibold" :class="getStatusClass(game.status)" x-text="getStatusLabel(game.status)"></span>
+                    </td>
+                    <td class="py-4 px-4 text-center font-mono text-xs text-text" x-text="formatPlaytime(game.playtimeHours)"></td>
+                    <td class="py-4 px-6 text-center">
+                      <template x-if="game.yourRating">
+                        <span class="font-mono text-xs font-semibold text-accent" x-text="game.yourRating + '/10'"></span>
+                      </template>
+                      <template x-if="!game.yourRating">
+                        <span class="text-text-secondary text-xs font-mono">Unrated</span>
+                      </template>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Platform Registry -->
+        <div x-show="currentTab === 'platforms'" class="animate-page-in space-y-8">
+          <!-- Header -->
+          <div class="border-b border-border pb-6">
+            <h1 class="text-4xl font-display font-bold text-text mb-2">Platform Registry</h1>
+            <p class="text-text-secondary text-sm">Analyze completion rates and time investments across platform classes.</p>
+          </div>
+
+          <!-- Platforms Owned Selector -->
+          <div class="border border-border bg-surface/50 p-6">
+            <h2 class="text-sm uppercase tracking-widest font-semibold text-text-secondary mb-4">Platforms Owned</h2>
+            <div class="flex flex-wrap gap-2">
+              <button @click="togglePlatformOwned('steam')" :class="platformsOwned.includes('steam') ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg text-text-secondary hover:border-text-secondary'" class="px-4 py-2 border text-sm font-medium transition-none">Steam</button>
+              <button @click="togglePlatformOwned('epic')" :class="platformsOwned.includes('epic') ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg text-text-secondary hover:border-text-secondary'" class="px-4 py-2 border text-sm font-medium transition-none">Epic Games</button>
+              <button @click="togglePlatformOwned('xbox')" :class="platformsOwned.includes('xbox') ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg text-text-secondary hover:border-text-secondary'" class="px-4 py-2 border text-sm font-medium transition-none">Xbox</button>
+              <button @click="togglePlatformOwned('ea')" :class="platformsOwned.includes('ea') ? 'border-accent bg-accent/10 text-accent' : 'border-border bg-bg text-text-secondary hover:border-text-secondary'" class="px-4 py-2 border text-sm font-medium transition-none">EA App</button>
+            </div>
+          </div>
+
+          <!-- Grid of platform cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Steam -->
+            <div x-show="platformsOwned.includes('steam')" class="border border-border bg-surface p-6 flex flex-col justify-between space-y-6">
+              <div>
+                <div class="flex justify-between items-start">
+                  <div class="flex items-center space-x-3">
+                    <i data-lucide="laptop" class="w-6 h-6 text-text-secondary shrink-0"></i>
+                    <div>
+                      <h2 class="text-2xl font-display font-semibold text-text">Steam</h2>
+                      <p class="text-xs text-text-secondary mt-0.5">Steam Store & Library</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs uppercase tracking-widest text-text-secondary">Playtime</p>
+                    <p class="text-lg font-mono font-bold text-accent" x-text="formatPlaytime(getPlatformData('steam').hours)"></p>
+                  </div>
+                </div>
+
+                <div class="mt-6 space-y-2">
+                  <div class="flex justify-between text-xs font-mono">
+                    <span class="text-text-secondary">Completion Rate</span>
+                    <span class="font-semibold text-text" x-text="getPlatformData('steam').completionRate + '%'"></span>
+                  </div>
+                  <div class="w-full h-1 bg-border rounded-full overflow-hidden">
+                    <div class="h-full bg-accent transition-all duration-500" :style="'width: ' + getPlatformData('steam').completionRate + '%'"></div>
+                  </div>
+                  <div class="text-[10px] text-text-secondary text-right">
+                    <span x-text="getPlatformData('steam').completed"></span> of <span x-text="getPlatformData('steam').games.length"></span> games completed
+                  </div>
+                </div>
+              </div>
+
+              <!-- List of Games -->
+              <div class="space-y-3">
+                <p class="text-[10px] uppercase tracking-widest text-text-secondary border-b border-border pb-1 font-semibold">Registered Titles (<span x-text="getPlatformData('steam').games.length"></span>)</p>
+                <div class="max-h-48 overflow-y-auto space-y-1.5 pr-2">
+                  <template x-for="game in getPlatformData('steam').games" :key="game.id">
+                    <div class="py-2 px-3 border border-border bg-bg/30 hover:border-accent transition-colors group">
+                      <div class="flex items-start justify-between gap-2 mb-1.5">
+                        <div @click="selectedGame = JSON.parse(JSON.stringify(game)); confirmDelete = false;" class="flex items-center space-x-2 truncate flex-1 cursor-pointer hover:text-accent">
+                          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="getStatusBulletClass(game.status)"></span>
+                          <span class="text-xs text-text group-hover:text-accent font-semibold transition-colors truncate" x-text="game.title"></span>
+                        </div>
+                        <span class="text-[10px] font-mono text-text-secondary flex-shrink-0" x-text="formatPlaytime(game.playtimeHours)"></span>
+                      </div>
+                      <div class="flex flex-wrap gap-1">
+                        <template x-if="editingGamePlatformId === game.id">
+                          <div class="flex flex-wrap gap-1">
+                            <button @click="togglePlatformOnGame(game.id, 'steam')" :class="game.platformsOwned.includes('steam') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Steam</button>
+                            <button @click="togglePlatformOnGame(game.id, 'epic')" :class="game.platformsOwned.includes('epic') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Epic</button>
+                            <button @click="togglePlatformOnGame(game.id, 'xbox')" :class="game.platformsOwned.includes('xbox') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Xbox</button>
+                            <button @click="togglePlatformOnGame(game.id, 'ea')" :class="game.platformsOwned.includes('ea') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">EA</button>
+                            <button @click="editingGamePlatformId = null" class="text-[9px] px-2 py-0.5 border border-border bg-bg text-text hover:border-accent">Done</button>
+                          </div>
+                        </template>
+                        <template x-if="editingGamePlatformId !== game.id">
+                          <div class="flex items-center gap-1 w-full">
+                            <template x-for="p in game.platformsOwned" :key="p">
+                              <span class="text-[9px] px-2 py-0.5 border border-accent/50 bg-accent/5 text-accent font-medium" x-text="getPlatformLabel(p)"></span>
+                            </template>
+                            <button @click="editingGamePlatformId = game.id" class="text-[9px] px-2 py-0.5 border border-border bg-bg text-text-secondary hover:border-text transition-all ml-auto">Edit</button>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- Epic -->
+            <div x-show="platformsOwned.includes('epic')" class="border border-border bg-surface p-6 flex flex-col justify-between space-y-6">
+              <div>
+                <div class="flex justify-between items-start">
+                  <div class="flex items-center space-x-3">
+                    <i data-lucide="laptop" class="w-6 h-6 text-text-secondary shrink-0"></i>
+                    <div>
+                      <h2 class="text-2xl font-display font-semibold text-text">Epic Games</h2>
+                      <p class="text-xs text-text-secondary mt-0.5">Epic Games Store</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs uppercase tracking-widest text-text-secondary">Playtime</p>
+                    <p class="text-lg font-mono font-bold text-accent" x-text="formatPlaytime(getPlatformData('epic').hours)"></p>
+                  </div>
+                </div>
+
+                <div class="mt-6 space-y-2">
+                  <div class="flex justify-between text-xs font-mono">
+                    <span class="text-text-secondary">Completion Rate</span>
+                    <span class="font-semibold text-text" x-text="getPlatformData('epic').completionRate + '%'"></span>
+                  </div>
+                  <div class="w-full h-1 bg-border rounded-full overflow-hidden">
+                    <div class="h-full bg-accent transition-all duration-500" :style="'width: ' + getPlatformData('epic').completionRate + '%'"></div>
+                  </div>
+                  <div class="text-[10px] text-text-secondary text-right">
+                    <span x-text="getPlatformData('epic').completed"></span> of <span x-text="getPlatformData('epic').games.length"></span> games completed
+                  </div>
+                </div>
+              </div>
+
+              <!-- List of Games -->
+              <div class="space-y-3">
+                <p class="text-[10px] uppercase tracking-widest text-text-secondary border-b border-border pb-1 font-semibold">Registered Titles (<span x-text="getPlatformData('epic').games.length"></span>)</p>
+                <div class="max-h-48 overflow-y-auto space-y-1.5 pr-2">
+                  <template x-for="game in getPlatformData('epic').games" :key="game.id">
+                    <div class="py-2 px-3 border border-border bg-bg/30 hover:border-accent transition-colors group">
+                      <div class="flex items-start justify-between gap-2 mb-1.5">
+                        <div @click="selectedGame = JSON.parse(JSON.stringify(game)); confirmDelete = false;" class="flex items-center space-x-2 truncate flex-1 cursor-pointer hover:text-accent">
+                          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="getStatusBulletClass(game.status)"></span>
+                          <span class="text-xs text-text group-hover:text-accent font-semibold transition-colors truncate" x-text="game.title"></span>
+                        </div>
+                        <span class="text-[10px] font-mono text-text-secondary flex-shrink-0" x-text="formatPlaytime(game.playtimeHours)"></span>
+                      </div>
+                      <div class="flex flex-wrap gap-1">
+                        <template x-if="editingGamePlatformId === game.id">
+                          <div class="flex flex-wrap gap-1">
+                            <button @click="togglePlatformOnGame(game.id, 'steam')" :class="game.platformsOwned.includes('steam') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Steam</button>
+                            <button @click="togglePlatformOnGame(game.id, 'epic')" :class="game.platformsOwned.includes('epic') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Epic</button>
+                            <button @click="togglePlatformOnGame(game.id, 'xbox')" :class="game.platformsOwned.includes('xbox') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Xbox</button>
+                            <button @click="togglePlatformOnGame(game.id, 'ea')" :class="game.platformsOwned.includes('ea') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">EA</button>
+                            <button @click="editingGamePlatformId = null" class="text-[9px] px-2 py-0.5 border border-border bg-bg text-text hover:border-accent">Done</button>
+                          </div>
+                        </template>
+                        <template x-if="editingGamePlatformId !== game.id">
+                          <div class="flex items-center gap-1 w-full">
+                            <template x-for="p in game.platformsOwned" :key="p">
+                              <span class="text-[9px] px-2 py-0.5 border border-accent/50 bg-accent/5 text-accent font-medium" x-text="getPlatformLabel(p)"></span>
+                            </template>
+                            <button @click="editingGamePlatformId = game.id" class="text-[9px] px-2 py-0.5 border border-border bg-bg text-text-secondary hover:border-text transition-all ml-auto">Edit</button>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- Xbox -->
+            <div x-show="platformsOwned.includes('xbox')" class="border border-border bg-surface p-6 flex flex-col justify-between space-y-6">
+              <div>
+                <div class="flex justify-between items-start">
+                  <div class="flex items-center space-x-3">
+                    <i data-lucide="gamepad-2" class="w-6 h-6 text-text-secondary shrink-0"></i>
+                    <div>
+                      <h2 class="text-2xl font-display font-semibold text-text">Xbox</h2>
+                      <p class="text-xs text-text-secondary mt-0.5">Xbox App & Game Pass</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs uppercase tracking-widest text-text-secondary">Playtime</p>
+                    <p class="text-lg font-mono font-bold text-accent" x-text="formatPlaytime(getPlatformData('xbox').hours)"></p>
+                  </div>
+                </div>
+
+                <div class="mt-6 space-y-2">
+                  <div class="flex justify-between text-xs font-mono">
+                    <span class="text-text-secondary">Completion Rate</span>
+                    <span class="font-semibold text-text" x-text="getPlatformData('xbox').completionRate + '%'"></span>
+                  </div>
+                  <div class="w-full h-1 bg-border rounded-full overflow-hidden">
+                    <div class="h-full bg-accent transition-all duration-500" :style="'width: ' + getPlatformData('xbox').completionRate + '%'"></div>
+                  </div>
+                  <div class="text-[10px] text-text-secondary text-right">
+                    <span x-text="getPlatformData('xbox').completed"></span> of <span x-text="getPlatformData('xbox').games.length"></span> games completed
+                  </div>
+                </div>
+              </div>
+
+              <!-- List of Games -->
+              <div class="space-y-3">
+                <p class="text-[10px] uppercase tracking-widest text-text-secondary border-b border-border pb-1 font-semibold">Registered Titles (<span x-text="getPlatformData('xbox').games.length"></span>)</p>
+                <div class="max-h-48 overflow-y-auto space-y-1.5 pr-2">
+                  <template x-for="game in getPlatformData('xbox').games" :key="game.id">
+                    <div class="py-2 px-3 border border-border bg-bg/30 hover:border-accent transition-colors group">
+                      <div class="flex items-start justify-between gap-2 mb-1.5">
+                        <div @click="selectedGame = JSON.parse(JSON.stringify(game)); confirmDelete = false;" class="flex items-center space-x-2 truncate flex-1 cursor-pointer hover:text-accent">
+                          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="getStatusBulletClass(game.status)"></span>
+                          <span class="text-xs text-text group-hover:text-accent font-semibold transition-colors truncate" x-text="game.title"></span>
+                        </div>
+                        <span class="text-[10px] font-mono text-text-secondary flex-shrink-0" x-text="formatPlaytime(game.playtimeHours)"></span>
+                      </div>
+                      <div class="flex flex-wrap gap-1">
+                        <template x-if="editingGamePlatformId === game.id">
+                          <div class="flex flex-wrap gap-1">
+                            <button @click="togglePlatformOnGame(game.id, 'steam')" :class="game.platformsOwned.includes('steam') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Steam</button>
+                            <button @click="togglePlatformOnGame(game.id, 'epic')" :class="game.platformsOwned.includes('epic') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Epic</button>
+                            <button @click="togglePlatformOnGame(game.id, 'xbox')" :class="game.platformsOwned.includes('xbox') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Xbox</button>
+                            <button @click="togglePlatformOnGame(game.id, 'ea')" :class="game.platformsOwned.includes('ea') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">EA</button>
+                            <button @click="editingGamePlatformId = null" class="text-[9px] px-2 py-0.5 border border-border bg-bg text-text hover:border-accent">Done</button>
+                          </div>
+                        </template>
+                        <template x-if="editingGamePlatformId !== game.id">
+                          <div class="flex items-center gap-1 w-full">
+                            <template x-for="p in game.platformsOwned" :key="p">
+                              <span class="text-[9px] px-2 py-0.5 border border-accent/50 bg-accent/5 text-accent font-medium" x-text="getPlatformLabel(p)"></span>
+                            </template>
+                            <button @click="editingGamePlatformId = game.id" class="text-[9px] px-2 py-0.5 border border-border bg-bg text-text-secondary hover:border-text transition-all ml-auto">Edit</button>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- EA App -->
+            <div x-show="platformsOwned.includes('ea')" class="border border-border bg-surface p-6 flex flex-col justify-between space-y-6">
+              <div>
+                <div class="flex justify-between items-start">
+                  <div class="flex items-center space-x-3">
+                    <i data-lucide="laptop" class="w-6 h-6 text-text-secondary shrink-0"></i>
+                    <div>
+                      <h2 class="text-2xl font-display font-semibold text-text">EA App</h2>
+                      <p class="text-xs text-text-secondary mt-0.5">EA App & Origin</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs uppercase tracking-widest text-text-secondary">Playtime</p>
+                    <p class="text-lg font-mono font-bold text-accent" x-text="formatPlaytime(getPlatformData('ea').hours)"></p>
+                  </div>
+                </div>
+
+                <div class="mt-6 space-y-2">
+                  <div class="flex justify-between text-xs font-mono">
+                    <span class="text-text-secondary">Completion Rate</span>
+                    <span class="font-semibold text-text" x-text="getPlatformData('ea').completionRate + '%'"></span>
+                  </div>
+                  <div class="w-full h-1 bg-border rounded-full overflow-hidden">
+                    <div class="h-full bg-accent transition-all duration-500" :style="'width: ' + getPlatformData('ea').completionRate + '%'"></div>
+                  </div>
+                  <div class="text-[10px] text-text-secondary text-right">
+                    <span x-text="getPlatformData('ea').completed"></span> of <span x-text="getPlatformData('ea').games.length"></span> games completed
+                  </div>
+                </div>
+              </div>
+
+              <!-- List of Games -->
+              <div class="space-y-3">
+                <p class="text-[10px] uppercase tracking-widest text-text-secondary border-b border-border pb-1 font-semibold">Registered Titles (<span x-text="getPlatformData('ea').games.length"></span>)</p>
+                <div class="max-h-48 overflow-y-auto space-y-1.5 pr-2">
+                  <template x-for="game in getPlatformData('ea').games" :key="game.id">
+                    <div class="py-2 px-3 border border-border bg-bg/30 hover:border-accent transition-colors group">
+                      <div class="flex items-start justify-between gap-2 mb-1.5">
+                        <div @click="selectedGame = JSON.parse(JSON.stringify(game)); confirmDelete = false;" class="flex items-center space-x-2 truncate flex-1 cursor-pointer hover:text-accent">
+                          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="getStatusBulletClass(game.status)"></span>
+                          <span class="text-xs text-text group-hover:text-accent font-semibold transition-colors truncate" x-text="game.title"></span>
+                        </div>
+                        <span class="text-[10px] font-mono text-text-secondary flex-shrink-0" x-text="formatPlaytime(game.playtimeHours)"></span>
+                      </div>
+                      <div class="flex flex-wrap gap-1">
+                        <template x-if="editingGamePlatformId === game.id">
+                          <div class="flex flex-wrap gap-1">
+                            <button @click="togglePlatformOnGame(game.id, 'steam')" :class="game.platformsOwned.includes('steam') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Steam</button>
+                            <button @click="togglePlatformOnGame(game.id, 'epic')" :class="game.platformsOwned.includes('epic') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Epic</button>
+                            <button @click="togglePlatformOnGame(game.id, 'xbox')" :class="game.platformsOwned.includes('xbox') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">Xbox</button>
+                            <button @click="togglePlatformOnGame(game.id, 'ea')" :class="game.platformsOwned.includes('ea') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-[9px] px-2 py-0.5 border">EA</button>
+                            <button @click="editingGamePlatformId = null" class="text-[9px] px-2 py-0.5 border border-border bg-bg text-text hover:border-accent">Done</button>
+                          </div>
+                        </template>
+                        <template x-if="editingGamePlatformId !== game.id">
+                          <div class="flex items-center gap-1 w-full">
+                            <template x-for="p in game.platformsOwned" :key="p">
+                              <span class="text-[9px] px-2 py-0.5 border border-accent/50 bg-accent/5 text-accent font-medium" x-text="getPlatformLabel(p)"></span>
+                            </template>
+                            <button @click="editingGamePlatformId = game.id" class="text-[9px] px-2 py-0.5 border border-border bg-bg text-text-secondary hover:border-text transition-all ml-auto">Edit</button>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Tab 4: Analytics Desk -->
+        <div x-show="currentTab === 'analytics'" class="animate-page-in space-y-12">
+          <!-- Header -->
+          <div class="border-b border-border pb-6">
+            <h1 class="text-4xl font-display font-bold text-text mb-2">Analytics Desk</h1>
+            <p class="text-text-secondary text-sm">Visual reports detailing genre distributions and play trends.</p>
+          </div>
+
+          <!-- Overview stats -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-border border border-border">
+            <div class="bg-surface p-6 text-center">
+              <p class="text-[10px] uppercase tracking-widest text-text-secondary mb-1">Average Playtime per Game</p>
+              <p class="text-3xl font-display font-semibold text-text">
+                <span x-text="calculateAveragePlaytime()"></span> <span class="text-sm font-sans text-text-secondary">hrs</span>
+              </p>
+            </div>
+            <div class="bg-surface p-6 text-center">
+              <p class="text-[10px] uppercase tracking-widest text-text-secondary mb-1">Most Active Genre</p>
+              <p class="text-3xl font-display font-semibold text-accent" x-text="getMostActiveGenre()"></p>
+            </div>
+          </div>
+
+          <!-- Grid: Bar Chart & Donut Chart -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Monthly Activity Log -->
+            <div class="border border-border bg-surface p-6 flex flex-col justify-between">
+              <div class="mb-4">
+                <h2 class="text-lg font-display font-semibold text-text">Monthly Activity Log</h2>
+                <p class="text-xs text-text-secondary">Cumulative playtime hours tracked over the last 6 months.</p>
+              </div>
+
+              <template x-if="library.length === 0">
+                <div class="py-20 text-center text-text-secondary text-xs font-sans border border-dashed border-border">No playtime logs registered.</div>
+              </template>
+              <template x-if="library.length > 0">
+                <div class="w-full flex justify-center items-end py-4">
+                  <!-- SVG Bar Chart -->
+                  <svg viewBox="0 0 500 200" class="w-full max-w-md h-auto overflow-visible">
+                    <!-- Grid Lines -->
+                    <template x-for="(val, idx) in [0, 25, 50, 75, 100]" :key="idx">
+                      <g>
+                        <line x1="0" :y1="160 - (val * 1.6)" x2="500" :y2="160 - (val * 1.6)" stroke="var(--color-border)" stroke-dasharray="2 4"></line>
+                        <text x="-10" :y="164 - (val * 1.6)" fill="var(--color-text-secondary)" class="text-[9px] font-mono text-right" text-anchor="end" x-text="Math.round(val * getMonthlyLogsMax() / 100) + 'h'"></text>
+                      </g>
+                    </template>
+                    <!-- Bars -->
+                    <template x-for="(log, idx) in getMonthlyLogs()" :key="idx">
+                      <g class="group">
+                        <rect :x="20 + idx * 80" :y="160 - (log.hours / getMonthlyLogsMax() * 160)" width="40" :height="(log.hours / getMonthlyLogsMax() * 160)" fill="var(--color-accent)" class="opacity-80 hover:opacity-100 transition-opacity cursor-pointer"></rect>
+                        <text :x="40 + idx * 80" :y="154 - (log.hours / getMonthlyLogsMax() * 160)" text-anchor="middle" fill="var(--color-text)" class="text-[9px] font-mono font-bold opacity-0 group-hover:opacity-100 transition-opacity" x-text="log.hours + 'h'"></text>
+                        <text :x="40 + idx * 80" y="176" text-anchor="middle" fill="var(--color-text-secondary)" class="text-[9px] uppercase tracking-widest font-sans" x-text="log.label"></text>
+                      </g>
+                    </template>
+                  </svg>
+                </div>
+              </template>
+            </div>
+
+            <!-- Genre Distribution Donut -->
+            <div class="border border-border bg-surface p-6 flex flex-col justify-between">
+              <div class="mb-4">
+                <h2 class="text-lg font-display font-semibold text-text">Genre Distribution</h2>
+                <p class="text-xs text-text-secondary">Dominant genres parsed from your collection library.</p>
+              </div>
+
+              <template x-if="library.length === 0">
+                <div class="py-20 text-center text-text-secondary text-xs font-sans border border-dashed border-border">No games in library to compute genres.</div>
+              </template>
+              <template x-if="library.length > 0">
+                <div class="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
+                  <!-- SVG Donut Chart -->
+                  <div class="relative w-40 h-40">
+                    <svg viewBox="0 0 100 100" class="w-full h-full transform -rotate-90">
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="var(--color-border)" strokeWidth="12"></circle>
+                      
+                      <!-- Donut sectors calculated reactively -->
+                      <template x-for="(g, idx) in getGenrePercentages()" :key="g.name">
+                        <circle cx="50" cy="50" r="40" fill="transparent" :stroke="g.color" stroke-width="12" :stroke-dasharray="g.dasharray" :stroke-dashoffset="g.dashoffset" class="transition-all duration-300 hover:stroke-[14px] cursor-pointer"></circle>
+                      </template>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col justify-center items-center pointer-events-none">
+                      <span class="text-xs text-text-secondary uppercase tracking-widest leading-none">Genres</span>
+                      <span class="text-2xl font-display font-bold text-text mt-0.5" x-text="getGenreDistribution().length"></span>
+                    </div>
+                  </div>
+
+                  <!-- Legend -->
+                  <div class="space-y-2.5 text-xs w-full max-w-[200px]">
+                    <template x-for="g in getGenrePercentages()" :key="g.name">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 truncate">
+                          <span class="w-2.5 h-2.5 shrink-0" :style="'background-color: ' + g.color"></span>
+                          <span class="text-text font-semibold truncate" x-text="g.name"></span>
+                        </div>
+                        <span class="text-text-secondary font-mono text-[10px] pl-2" x-text="g.percent + '% (' + g.count + ')'"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Platform share horizontal bar chart -->
+          <div class="border border-border bg-surface p-6">
+            <div class="mb-6">
+              <h2 class="text-lg font-display font-semibold text-text">Platform Distribution</h2>
+              <p class="text-xs text-text-secondary">Comparison of playtime investments and collection size per ecosystem.</p>
+            </div>
+
+            <template x-if="library.length === 0">
+              <div class="py-12 text-center text-text-secondary text-xs font-sans border border-dashed border-border">Add games to check platform metrics.</div>
+            </template>
+            <template x-if="library.length > 0">
+              <div class="space-y-6">
+                <template x-for="plat in getPlatformAnalytics()" :key="plat.name">
+                  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center border-b border-border/50 pb-4 last:border-b-0 last:pb-0">
+                    <div class="md:col-span-1">
+                      <span class="text-sm font-semibold text-text" x-text="plat.name"></span>
+                    </div>
+
+                    <div class="md:col-span-2 space-y-1">
+                      <div class="flex justify-between text-[10px] uppercase tracking-wider text-text-secondary font-mono">
+                        <span>Playtime Hours (<span x-text="plat.hours"></span> hrs)</span>
+                        <span>Ecosystem Weight</span>
+                      </div>
+                      <div class="w-full h-2.5 bg-bg border border-border rounded overflow-hidden">
+                        <div class="h-full bg-accent transition-all duration-500" :style="'width: ' + plat.hoursPercent + '%'"></div>
+                      </div>
+                    </div>
+
+                    <div class="md:col-span-1 space-y-1">
+                      <div class="flex justify-between text-[10px] uppercase tracking-wider text-text-secondary font-mono">
+                        <span>Games (<span x-text="plat.count"></span>)</span>
+                      </div>
+                      <div class="w-full h-2.5 bg-bg border border-border rounded overflow-hidden">
+                        <div class="h-full bg-text-secondary transition-all duration-500" :style="'width: ' + plat.countPercent + '%'"></div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="border-t border-border py-6 px-6 md:px-10 text-center text-[10px] text-text-secondary font-sans uppercase tracking-widest">
+        <p>GameTrack &copy; <span x-text="new Date().getFullYear()"></span> — Premium Backlog Registry. Powered by RAWG API.</p>
+      </footer>
+
+      <!-- Global Search Modal overlay -->
+      <div x-show="searchOpen" class="fixed inset-0 z-[100] flex items-start justify-center pt-20 px-4 animate-backdrop-in">
+        <div @click.away="searchOpen = false" class="w-full max-w-2xl border border-border bg-surface flex flex-col max-h-[75vh] animate-scale-in">
+          <!-- Search input bar -->
+          <div class="flex items-center border-b border-border px-4 py-3">
+            <i data-lucide="search" class="w-5 h-5 text-text-secondary mr-3"></i>
+            <input type="text" x-model="searchQuery" @input.debounce.400ms="searchGamesRegistry()" placeholder="Search games registry by title..." class="w-full bg-transparent text-text text-base border-none focus:outline-none placeholder-text-secondary" />
+            <button @click="searchOpen = false" class="text-text-secondary hover:text-text text-xs uppercase tracking-widest border border-border px-2.5 py-1 hover:border-accent transition-colors ml-2">Esc</button>
+          </div>
+
+          <!-- Results -->
+          <div class="flex-1 overflow-y-auto divide-y divide-border">
+            <div x-show="isSearching" class="py-12 text-center text-text-secondary text-sm">
+              <span class="inline-block animate-pulse">Syncing gaming registry...</span>
+            </div>
+            
+            <div x-show="searchError" x-text="searchError" class="p-4 text-center text-red-400 text-sm"></div>
+
+            <div x-show="!isSearching && !searchError && searchQuery && searchResults.length === 0" class="py-12 text-center text-text-secondary text-sm font-sans">
+              No matching games found in RAWG registry.
+            </div>
+
+            <div x-show="!isSearching && !searchError && !searchQuery" class="py-12 text-center text-text-secondary text-xs uppercase tracking-widest">
+              Type to search games catalog
+            </div>
+
+            <template x-show="!isSearching && !searchError" x-for="game in searchResults" :key="game.id">
+              <button @click="inspectGame(game)" class="w-full text-left px-6 py-4 flex items-center justify-between hover:bg-bg/40 transition-colors group">
+                <div class="flex-1 min-w-0 pr-4">
+                  <div class="flex items-baseline space-x-2">
+                    <h3 class="text-sm font-semibold text-text group-hover:text-accent truncate transition-colors" x-text="game.name"></h3>
+                    <span class="text-xs text-text-secondary" x-text="'(' + (game.released ? new Date(game.released).getFullYear() : 'N/A') + ')'"></span>
+                  </div>
+                  <p class="text-xs text-text-secondary truncate mt-1" x-text="game.platforms ? game.platforms.map(p => p.platform.name).join(', ') : ''"></p>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                  <template x-if="game.metacritic">
+                    <span class="text-xs border border-border px-1.5 py-0.5 rounded font-mono font-bold text-text bg-surface" x-text="'MC: ' + game.metacritic"></span>
+                  </template>
+                  <span x-show="library.some(g => g.id === game.id)" class="text-[10px] uppercase tracking-widest text-accent border border-accent bg-accent/5 px-2 py-0.5 font-bold">In Library</span>
+                  <span x-show="!library.some(g => g.id === game.id)" class="text-[10px] uppercase tracking-widest text-text-secondary border border-border px-2 py-0.5 group-hover:border-accent group-hover:text-accent transition-colors">+ Add</span>
+                </div>
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Inspector Modal overlay -->
+      <div x-show="selectedGame" class="fixed inset-0 z-[100] flex items-start justify-center pt-20 pb-10 px-4 overflow-y-auto animate-backdrop-in">
+        <div @click.away="selectedGame = null" class="w-full max-w-2xl border border-border bg-surface p-8 relative flex flex-col my-auto animate-scale-in">
+          <!-- Close -->
+          <button @click="selectedGame = null" class="absolute top-4 right-4 text-text-secondary hover:text-text hover:border-accent border border-border px-3 py-1 text-xs uppercase tracking-widest transition-colors">Close</button>
+
+          <!-- Header -->
+          <div class="text-center mb-6">
+            <h2 class="text-3xl font-display font-bold text-accent mb-2" x-text="selectedGame ? selectedGame.title : ''"></h2>
+            <div class="flex flex-wrap justify-center items-center gap-3 text-xs text-text-secondary">
+              <span x-text="selectedGame ? selectedGame.year : ''"></span>
+              <span x-show="selectedGame && selectedGame.metacritic" class="text-border">|</span>
+              <template x-if="selectedGame && selectedGame.metacritic">
+                <span class="border border-border px-1.5 py-0.5 rounded font-mono font-bold text-text bg-bg" x-text="'Metacritic: ' + selectedGame.metacritic"></span>
+              </template>
+              <span x-show="selectedGame && selectedGame.genres && selectedGame.genres.length > 0" class="text-border">|</span>
+              <span x-text="selectedGame && selectedGame.genres ? selectedGame.genres.join(', ') : ''"></span>
+            </div>
+          </div>
+
+          <!-- Synopsis -->
+          <div x-show="selectedGame && selectedGame.synopsis" class="border border-border bg-bg/40 p-4 mb-6 max-h-[400px] overflow-y-auto text-xs text-text-secondary leading-relaxed text-center" x-text="selectedGame ? cleanSynopsis(selectedGame.synopsis) : ''"></div>
+
+          <!-- Forms -->
+          <div class="space-y-6" x-if="selectedGame">
+            <div class="text-center">
+              <label class="block text-xs uppercase tracking-widest text-text-secondary mb-2">Status</label>
+              <div class="inline-block relative w-48">
+                <select x-model="selectedGame.status" class="w-full border border-border bg-bg text-text text-sm py-2 px-3 focus:outline-none focus:border-accent text-center appearance-none cursor-pointer">
+                  <option value="backlog">Backlog</option>
+                  <option value="playing">Currently Playing</option>
+                  <option value="completed">Completed</option>
+                  <option value="multiplayer">Multiplayer</option>
+                  <option value="endless">Endless</option>
+                  <option value="onhold">On Hold</option>
+                  <option value="dropped">Dropped</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Platforms Owned -->
+            <div class="text-center">
+              <label class="block text-xs uppercase tracking-widest text-text-secondary mb-2">Platforms Owned</label>
+              <div class="flex flex-wrap justify-center gap-1.5 max-w-md mx-auto">
+                <button type="button" @click="toggleSelectedGamePlatform('steam')" :class="selectedGame && selectedGame.platformsOwned.includes('steam') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-xs px-3 py-1 border transition-none">Steam</button>
+                <button type="button" @click="toggleSelectedGamePlatform('epic')" :class="selectedGame && selectedGame.platformsOwned.includes('epic') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-xs px-3 py-1 border transition-none">Epic</button>
+                <button type="button" @click="toggleSelectedGamePlatform('xbox')" :class="selectedGame && selectedGame.platformsOwned.includes('xbox') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-xs px-3 py-1 border transition-none">Xbox</button>
+                <button type="button" @click="toggleSelectedGamePlatform('ea')" :class="selectedGame && selectedGame.platformsOwned.includes('ea') ? 'border-accent bg-accent/10 text-accent font-semibold' : 'border-border bg-bg text-text-secondary'" class="text-xs px-3 py-1 border transition-none">EA</button>
+              </div>
+            </div>
+
+            <!-- Numeric Inputs -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
+              <!-- Playtime -->
+              <div class="text-center">
+                <label class="block text-xs uppercase tracking-widest text-text-secondary mb-1">Playtime (Hours)</label>
+                <input type="number" min="0" step="any" x-model="selectedGame.playtimeHours" class="w-full border border-border bg-bg text-text text-sm py-1.5 px-3 focus:outline-none focus:border-accent text-center" />
+              </div>
+              <!-- Rating -->
+              <div class="text-center">
+                <label class="block text-xs uppercase tracking-widest text-text-secondary mb-1">Rating</label>
+                <select x-model="selectedGame.yourRating" class="w-full border border-border bg-bg text-text text-sm py-1.5 px-3 focus:outline-none focus:border-accent text-center appearance-none cursor-pointer">
+                  <option value="0">Unrated</option>
+                  <option value="1">1/10</option>
+                  <option value="2">2/10</option>
+                  <option value="3">3/10</option>
+                  <option value="4">4/10</option>
+                  <option value="5">5/10</option>
+                  <option value="6">6/10</option>
+                  <option value="7">7/10</option>
+                  <option value="8">8/10</option>
+                  <option value="9">9/10</option>
+                  <option value="10">10/10</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="mt-8 pt-6 border-t border-border flex flex-col items-center space-y-4">
+            <div x-show="confirmDelete" class="text-center border border-red-500/30 bg-red-500/5 p-4 w-full max-w-md">
+              <p class="text-sm text-red-500 font-medium mb-3">Remove this game from your collection?</p>
+              <div class="flex justify-center space-x-4">
+                <button @click="deleteSelectedGame()" class="px-4 py-1.5 border border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500 text-xs uppercase tracking-wider">Yes, Delete Game</button>
+                <button @click="confirmDelete = false" class="px-4 py-1.5 border border-border text-text-secondary hover:text-text text-xs uppercase tracking-wider">Cancel</button>
+              </div>
+            </div>
+
+            <div x-show="!confirmDelete" class="flex flex-wrap justify-center gap-4 w-full">
+              <button @click="saveSelectedGame()" class="px-8 py-2 border border-accent bg-accent/10 text-accent hover:bg-accent hover:text-white text-xs uppercase tracking-widest font-semibold">
+                <span x-text="library.some(g => g.id === selectedGame.id) ? 'Update Record' : 'Add to Backlog'"></span>
+              </button>
+              <button @click="selectedGame = null" class="px-8 py-2 border border-border text-text-secondary hover:border-text hover:text-text text-xs uppercase tracking-widest">Cancel</button>
+              <button x-show="library.some(g => g.id === selectedGame.id)" @click="confirmDelete = true" class="px-4 py-2 border border-red-500/30 text-red-400/80 hover:border-red-500 hover:text-red-500 text-xs uppercase tracking-widest ml-auto">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Alpine App Logic -->
+  <script>
+    function gameTrack() {
+      return {
+        library: [],
+        isLoading: false,
+        error: '',
+        apiKey: localStorage.getItem('gt_api_key') || '',
+        theme: localStorage.getItem('gt_theme') || 'dark',
+        platformsOwned: localStorage.getItem('gt_platforms_owned') ? JSON.parse(localStorage.getItem('gt_platforms_owned')) : ['steam', 'epic', 'xbox'],
+        currentTab: 'dashboard',
+        
+        // Setup API Key
+        apiKeyInput: '',
+        hasApiKey: false,
+
+        // Settings Modal
+        showSettings: false,
+        tempApiKey: '',
+        apiKeySaved: false,
+        importError: '',
+        importSuccess: false,
+
+        // Search Modal
+        searchOpen: false,
+        searchQuery: '',
+        searchResults: [],
+        isSearching: false,
+        searchError: '',
+
+        // Detail Inspector Modal
+        selectedGame: null,
+        confirmDelete: false,
+
+        // Backlog Filters & Sorting
+        localFilterQuery: '',
+        filterStatus: 'all',
+        filterPlatform: 'all',
+        sortKey: 'dateAddedDesc',
+
+        // Suggestions
+        suggestions: [],
+        editingGamePlatformId: null,
+
+        init() {
+          this.hasApiKey = !!this.apiKey;
+          this.tempApiKey = this.apiKey;
+          this.apiKeyInput = this.apiKey;
+          
+          this.applyTheme();
+          if (this.hasApiKey) {
+            this.fetchLibraryData();
+          }
+
+          // Register Keyboard shortcut
+          window.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+              e.preventDefault();
+              this.searchOpen = true;
+              this.searchQuery = '';
+              this.searchResults = [];
+            }
+          });
+
+          // Wait a tick to trigger lucide
+          this.$nextTick(() => {
+            lucide.createIcons();
+          });
+
+          this.$watch('currentTab', () => {
+            this.$nextTick(() => lucide.createIcons());
+          });
+          this.$watch('hasApiKey', () => {
+            this.$nextTick(() => lucide.createIcons());
+          });
+        },
+
+        applyTheme() {
+          if (this.theme === 'light') {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+          } else {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+          }
+          localStorage.setItem('gt_theme', this.theme);
+        },
+
+        toggleTheme() {
+          this.theme = this.theme === 'dark' ? 'light' : 'dark';
+          this.applyTheme();
+        },
+
+        saveApiKeyFromSetup() {
+          const trimmed = this.apiKeyInput.trim();
+          if (!trimmed) return;
+          this.apiKey = trimmed;
+          this.tempApiKey = trimmed;
+          localStorage.setItem('gt_api_key', trimmed);
+          this.hasApiKey = true;
+          this.fetchLibraryData();
+        },
+
+        saveApiKey() {
+          const trimmed = this.tempApiKey.trim();
+          this.apiKey = trimmed;
+          if (trimmed) {
+            localStorage.setItem('gt_api_key', trimmed);
+            this.hasApiKey = true;
+          } else {
+            localStorage.removeItem('gt_api_key');
+            this.hasApiKey = false;
+          }
+          this.apiKeySaved = true;
+          setTimeout(() => this.apiKeySaved = false, 2000);
+        },
+
+        async fetchLibraryData() {
+          this.isLoading = true;
+          this.error = '';
+          try {
+            const response = await fetch('/api/library');
+            if (!response.ok) throw new Error('Failed to fetch library from server');
+            this.library = await response.json();
+            this.shuffleSuggestions();
+          } catch (err) {
+            console.error(err);
+            // Local fallback
+            const localFallback = localStorage.getItem('gt_library_fallback');
+            if (localFallback) {
+              this.library = JSON.parse(localFallback);
+              this.shuffleSuggestions();
+            } else {
+              this.error = 'Failed to sync library from backend. Showing local empty library.';
+            }
+          } finally {
+            this.isLoading = false;
+          }
+        },
+
+        async saveLibraryData() {
+          localStorage.setItem('gt_library_fallback', JSON.stringify(this.library));
+          try {
+            const response = await fetch('/api/library', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.library)
+            });
+            if (!response.ok) throw new Error('Failed to save library on backend');
+          } catch (err) {
+            console.error('Error saving library to server:', err);
+          }
+        },
+
+        shuffleSuggestions() {
+          const backlogGames = this.library.filter(g => g.status === 'backlog');
+          if (backlogGames.length === 0) {
+            this.suggestions = [];
+            return;
+          }
+          const shuffled = [...backlogGames].sort(() => 0.5 - Math.random());
+          this.suggestions = shuffled.slice(0, 3);
+        },
+
+        togglePlatformOwned(id) {
+          if (this.platformsOwned.includes(id)) {
+            this.platformsOwned = this.platformsOwned.filter(p => p !== id);
+          } else {
+            this.platformsOwned.push(id);
+          }
+          localStorage.setItem('gt_platforms_owned', JSON.stringify(this.platformsOwned));
+        },
+
+        // Search Games via RAWG API
+        async searchGamesRegistry() {
+          const query = this.searchQuery.trim();
+          if (!query) {
+            this.searchResults = [];
+            return;
+          }
+          this.isSearching = true;
+          this.searchError = '';
+          try {
+            const url = `https://api.rawg.io/api/games?key=${this.apiKey}&search=${encodeURIComponent(query)}&page_size=20`;
+            const response = await fetch(url);
+            if (!response.ok) {
+              if (response.status === 401) throw new Error('Invalid RAWG API key.');
+              throw new Error('Failed to search RAWG.');
+            }
+            const data = await response.json();
+            this.searchResults = data.results || [];
+          } catch (err) {
+            console.error(err);
+            this.searchError = err.message || 'Error searching games.';
+          } finally {
+            this.isSearching = false;
+          }
+        },
+
+        async inspectGame(game) {
+          const existing = this.library.find(g => g.id === game.id);
+          if (existing) {
+            this.selectedGame = JSON.parse(JSON.stringify(existing));
+            this.confirmDelete = false;
+            this.searchOpen = false;
+            return;
+          }
+
+          this.isLoading = true;
+          try {
+            const url = `https://api.rawg.io/api/games/${game.id}?key=${this.apiKey}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch detailed game specs.');
+            const details = await response.json();
+
+            this.selectedGame = {
+              id: details.id,
+              title: details.name,
+              year: details.released ? new Date(details.released).getFullYear() : null,
+              metacritic: details.metacritic || null,
+              genres: details.genres ? details.genres.map(g => g.name) : [],
+              synopsis: details.description_raw || details.description || '',
+              platformsOwned: [],
+              status: 'backlog',
+              playtimeHours: 0,
+              yourRating: 0,
+              dateAdded: new Date().toISOString().split('T')[0]
+            };
+            this.confirmDelete = false;
+            this.searchOpen = false;
+          } catch (err) {
+            console.error(err);
+            alert(err.message || 'Failed to inspect game.');
+          } finally {
+            this.isLoading = false;
+          }
+        },
+
+        openGameById(id) {
+          const game = this.library.find(g => g.id === id);
+          if (game) {
+            this.selectedGame = JSON.parse(JSON.stringify(game));
+            this.confirmDelete = false;
+          }
+        },
+
+        toggleSelectedGamePlatform(id) {
+          if (!this.selectedGame) return;
+          if (!this.selectedGame.platformsOwned) this.selectedGame.platformsOwned = [];
+          if (this.selectedGame.platformsOwned.includes(id)) {
+            this.selectedGame.platformsOwned = this.selectedGame.platformsOwned.filter(p => p !== id);
+          } else {
+            this.selectedGame.platformsOwned.push(id);
+          }
+        },
+
+        saveSelectedGame() {
+          if (!this.selectedGame) return;
+          this.selectedGame.playtimeHours = Math.round(Number(this.selectedGame.playtimeHours) * 100) / 100 || 0;
+          this.selectedGame.yourRating = Number(this.selectedGame.yourRating) || 0;
+
+          const idx = this.library.findIndex(g => g.id === this.selectedGame.id);
+          if (idx !== -1) {
+            this.library[idx] = this.selectedGame;
+          } else {
+            this.library.unshift(this.selectedGame);
+          }
+          this.selectedGame = null;
+          this.saveLibraryData();
+          this.shuffleSuggestions();
+        },
+
+        deleteSelectedGame() {
+          if (!this.selectedGame) return;
+          this.library = this.library.filter(g => g.id !== this.selectedGame.id);
+          this.selectedGame = null;
+          this.saveLibraryData();
+          this.shuffleSuggestions();
+        },
+
+        togglePlatformOnGame(gameId, platId) {
+          const game = this.library.find(g => g.id === gameId);
+          if (game) {
+            if (!game.platformsOwned) game.platformsOwned = [];
+            if (game.platformsOwned.includes(platId)) {
+              game.platformsOwned = game.platformsOwned.filter(p => p !== platId);
+            } else {
+              game.platformsOwned.push(platId);
+            }
+            this.saveLibraryData();
+          }
+        },
+
+        // Filters and sorting
+        filteredGames() {
+          const query = this.localFilterQuery.toLowerCase().trim();
+          let games = this.library.filter(g => {
+            const matchesSearch = g.title.toLowerCase().includes(query);
+            const matchesStatus = this.filterStatus === 'all' || g.status === this.filterStatus;
+            const matchesPlatform = this.filterPlatform === 'all' || (g.platformsOwned && g.platformsOwned.includes(this.filterPlatform));
+            return matchesSearch && matchesStatus && matchesPlatform;
+          });
+
+          return games.sort((a, b) => {
+            switch (this.sortKey) {
+              case 'alphabetical':
+                return a.title.localeCompare(b.title);
+              case 'metacritic':
+                return (b.metacritic || 0) - (a.metacritic || 0);
+              case 'playtime':
+                return (b.playtimeHours || 0) - (a.playtimeHours || 0);
+              case 'rating':
+                return (b.yourRating || 0) - (a.yourRating || 0);
+              case 'dateAddedDesc':
+                return new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0);
+              case 'dateAddedAsc':
+                return new Date(a.dateAdded || 0) - new Date(b.dateAdded || 0);
+              default:
+                return 0;
+            }
+          });
+        },
+
+        getPlatformData(platformId) {
+          const games = this.library.filter(g => g.platformsOwned && g.platformsOwned.includes(platformId));
+          const hours = Math.round(games.reduce((sum, g) => sum + Number(g.playtimeHours || 0), 0) * 10) / 10;
+          const completed = games.filter(g => g.status === 'completed').length;
+          const completionTotal = games.filter(g => g.status !== 'multiplayer' && g.status !== 'endless').length;
+          const completionRate = completionTotal > 0 ? Math.round((completed / completionTotal) * 100) : 0;
+          return { games, hours, completed, completionRate };
+        },
+
+        // Helper stats
+        formatPlaytime(decimalHours) {
+          if (!decimalHours || decimalHours <= 0) return '0 hrs';
+          const hrs = Math.floor(decimalHours);
+          const mins = Math.round((decimalHours % 1) * 60);
+          if (hrs > 0 && mins > 0) return `${hrs}h ${mins}m`;
+          return hrs > 0 ? `${hrs} ${hrs === 1 ? 'hr' : 'hrs'}` : `${mins} mins`;
+        },
+
+        calculateCompletionRate() {
+          const completed = this.library.filter(g => g.status === 'completed').length;
+          const total = this.library.filter(g => g.status !== 'multiplayer' && g.status !== 'endless').length;
+          return total > 0 ? Math.round((completed / total) * 100) : 0;
+        },
+
+        calculateAveragePlaytime() {
+          if (this.library.length === 0) return 0;
+          const totalHours = this.library.reduce((sum, g) => sum + Number(g.playtimeHours || 0), 0);
+          return (totalHours / this.library.length).toFixed(1);
+        },
+
+        getMostActiveGenre() {
+          const genresMap = {};
+          this.library.forEach(game => {
+            if (game.genres) {
+              game.genres.forEach(g => genresMap[g] = (genresMap[g] || 0) + 1);
+            }
+          });
+          const sorted = Object.keys(genresMap).sort((a, b) => genresMap[b] - genresMap[a]);
+          return sorted[0] || 'N/A';
+        },
+
+        calculatePlayingStreak() {
+          const activities = [];
+          this.library.forEach(game => {
+            if (game.dateAdded) {
+              activities.push({ dateStr: game.dateAdded, date: new Date(game.dateAdded) });
+            }
+          });
+          const sorted = activities.filter(a => !isNaN(a.date.getTime())).sort((a, b) => b.date - a.date);
+          if (sorted.length === 0) return 0;
+          const activeDates = new Set(sorted.map(act => act.dateStr).filter(Boolean));
+          
+          let streak = 0;
+          const today = new Date();
+          const formatDateStr = (date) => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+          };
+          
+          let checkDate = new Date(today);
+          let dateStr = formatDateStr(checkDate);
+          if (!activeDates.has(dateStr)) {
+            checkDate.setDate(checkDate.getDate() - 1);
+            dateStr = formatDateStr(checkDate);
+          }
+          while (activeDates.has(dateStr)) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+            dateStr = formatDateStr(checkDate);
+          }
+          return streak;
+        },
+
+        getRecentActivity() {
+          const activities = [];
+          this.library.forEach(game => {
+            if (game.dateAdded) {
+              activities.push({
+                id: `${game.id}-added`,
+                gameId: game.id,
+                dateStr: game.dateAdded,
+                date: new Date(game.dateAdded),
+                type: 'added',
+                description: `Added "${game.title}" to backlog.`
+              });
+            }
+            if (game.yourRating && game.dateAdded) {
+              activities.push({
+                id: `${game.id}-rated`,
+                gameId: game.id,
+                dateStr: game.dateAdded,
+                date: new Date(game.dateAdded),
+                type: 'rated',
+                description: `Rated "${game.title}" ${game.yourRating}/10.`
+              });
+            }
+            if (game.status === 'completed' && game.dateAdded) {
+              activities.push({
+                id: `${game.id}-completed`,
+                gameId: game.id,
+                dateStr: game.dateAdded,
+                date: new Date(game.dateAdded),
+                type: 'completed',
+                description: `Completed "${game.title}".`
+              });
+            }
+          });
+          return activities.filter(a => !isNaN(a.date.getTime())).sort((a, b) => b.date - a.date).slice(0, 15);
+        },
+
+        formatActivityDate(dateStr) {
+          if (!dateStr) return '';
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) return '';
+          const year = date.getFullYear();
+          const dayMonth = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          return `${dayMonth} '${String(year).slice(-2)}`;
+        },
+
+        // Analytics data loaders
+        getMonthlyLogs() {
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const monthlyLogs = [];
+          const today = new Date();
+          for (let i = 5; i >= 0; i--) {
+            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            monthlyLogs.push({
+              year: d.getFullYear(),
+              monthIndex: d.getMonth(),
+              label: `${monthNames[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`,
+              hours: 0
+            });
+          }
+
+          this.library.forEach(game => {
+            const hours = Number(game.playtimeHours || 0);
+            if (hours === 0 || !game.dateAdded) return;
+            const date = new Date(game.dateAdded);
+            if (isNaN(date.getTime())) return;
+            const y = date.getFullYear();
+            const m = date.getMonth();
+            
+            const log = monthlyLogs.find(l => l.year === y && l.monthIndex === m);
+            if (log) log.hours = Math.round((log.hours + hours) * 10) / 10;
+          });
+          return monthlyLogs;
+        },
+
+        getMonthlyLogsMax() {
+          return Math.max(...this.getMonthlyLogs().map(l => l.hours), 10);
+        },
+
+        getGenreDistribution() {
+          const map = {};
+          this.library.forEach(g => {
+            if (g.genres) {
+              g.genres.forEach(name => map[name] = (map[name] || 0) + 1);
+            }
+          });
+          return Object.keys(map).map(name => ({ name, count: map[name] })).sort((a, b) => b.count - a.count).slice(0, 5);
+        },
+
+        getGenrePercentages() {
+          const genres = this.getGenreDistribution();
+          const total = genres.reduce((sum, g) => sum + g.count, 0);
+          
+          const colors = ['var(--color-accent)', '#5a5a5a', '#888888', '#b0b0b0', '#3b82f6'];
+          const circumference = 2 * Math.PI * 40; // ~251.3
+
+          let accumulatedPercent = 0;
+          return genres.map((g, idx) => {
+            const percent = total > 0 ? Math.round((g.count / total) * 100) : 0;
+            const dasharray = `${(g.count / total) * circumference} ${circumference}`;
+            const dashoffset = -accumulatedPercent * circumference;
+            accumulatedPercent += (g.count / total);
+
+            return {
+              name: g.name,
+              count: g.count,
+              percent,
+              color: colors[idx % colors.length],
+              dasharray,
+              dashoffset
+            };
+          });
+        },
+
+        getPlatformAnalytics() {
+          const platforms = [
+            { name: 'Steam', key: 'steam' },
+            { name: 'Epic Games', key: 'epic' },
+            { name: 'Xbox', key: 'xbox' },
+            { name: 'EA App', key: 'ea' }
+          ];
+
+          const stats = platforms.map(p => {
+            const data = this.getPlatformData(p.key);
+            return {
+              name: p.name,
+              hours: data.hours,
+              count: data.games.length
+            };
+          });
+
+          const maxHours = Math.max(...stats.map(s => s.hours), 1);
+          const maxCount = Math.max(...stats.map(s => s.count), 1);
+
+          return stats.map(s => ({
+            ...s,
+            hoursPercent: Math.max(5, Math.round((s.hours / maxHours) * 100)),
+            countPercent: Math.max(5, Math.round((s.count / maxCount) * 100))
+          }));
+        },
+
+        getPlatformLabel(id) {
+          const map = { steam: 'Steam', epic: 'Epic', xbox: 'Xbox', ea: 'EA' };
+          return map[id] || id.toUpperCase();
+        },
+
+        getStatusLabel(status) {
+          const map = {
+            backlog: 'Backlog',
+            playing: 'Playing',
+            completed: 'Completed',
+            multiplayer: 'Multiplayer',
+            endless: 'Endless',
+            onhold: 'On Hold',
+            dropped: 'Dropped'
+          };
+          return map[status] || status;
+        },
+
+        getStatusClass(status) {
+          const map = {
+            backlog: 'border-status-backlog text-status-backlog bg-status-backlog/5',
+            playing: 'border-status-playing text-status-playing bg-status-playing/5',
+            completed: 'border-status-completed text-status-completed bg-status-completed/5',
+            multiplayer: 'border-status-multiplayer text-status-multiplayer bg-status-multiplayer/5',
+            endless: 'border-status-endless text-status-endless bg-status-endless/5',
+            onhold: 'border-status-onhold text-status-onhold bg-status-onhold/5',
+            dropped: 'border-status-dropped text-status-dropped bg-status-dropped/5'
+          };
+          return map[status] || 'border-border text-text-secondary';
+        },
+
+        getStatusBulletClass(status) {
+          const map = {
+            backlog: 'bg-status-backlog',
+            playing: 'bg-status-playing',
+            completed: 'bg-status-completed',
+            multiplayer: 'bg-status-multiplayer',
+            endless: 'bg-status-endless',
+            onhold: 'bg-status-onhold',
+            dropped: 'bg-status-dropped'
+          };
+          return map[status] || 'bg-status-backlog';
+        },
+
+        cleanSynopsis(txt) {
+          if (!txt) return '';
+          return txt.replace(/<\/?[^>]+(>|$)/g, "");
+        },
+
+        // Export/Import
+        exportLibrary() {
+          if (this.library.length === 0) {
+            alert("Your library is empty. Nothing to export.");
+            return;
+          }
+          const blob = new Blob([JSON.stringify(this.library, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'gametrack_library.json';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        },
+
+        importLibraryFile(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = async (evt) => {
+            try {
+              const data = JSON.parse(evt.target.result);
+              if (!Array.isArray(data)) throw new Error('Data is not a JSON array of games.');
+              for (const item of data) {
+                if (!item.hasOwnProperty('id') || !item.hasOwnProperty('title')) {
+                  throw new Error('Each game must have at least an "id" and "title".');
+                }
+              }
+              this.library = data;
+              await this.saveLibraryData();
+              this.shuffleSuggestions();
+              this.importSuccess = true;
+              this.importError = '';
+              setTimeout(() => this.importSuccess = false, 3000);
+            } catch (err) {
+              this.importError = err.message || 'Failed to parse JSON file.';
+              this.importSuccess = false;
+            }
+          };
+          reader.readAsText(file);
+          e.target.value = '';
+        }
+      };
+    }
+  </script>
+</body>
+</html>

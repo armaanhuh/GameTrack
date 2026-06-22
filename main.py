@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 
 app = FastAPI(title="GameTrack API")
 
-# Enable CORS for frontend development
+# Enable CORS for local/dev requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,8 +18,8 @@ app.add_middleware(
 
 # File Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, '../data/library.json')
-DIST_DIR = os.path.join(BASE_DIR, '../dist')
+DB_PATH = os.path.join(BASE_DIR, 'data/library.json')
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
 
 def init_db():
     db_dir = os.path.dirname(DB_PATH)
@@ -29,7 +29,6 @@ def init_db():
         with open(DB_PATH, 'w', encoding='utf-8') as f:
             json.dump([], f, indent=2)
 
-# Ensure database is initialized on startup
 init_db()
 
 @app.get("/api/library")
@@ -61,26 +60,21 @@ async def save_library(request: Request):
         print(f"Error writing to library database: {e}")
         raise HTTPException(status_code=500, detail="Failed to save library database")
 
-# Serve frontend build if dist folder exists
-if os.path.exists(DIST_DIR):
-    # Mount assets folder for static files
-    assets_dir = os.path.join(DIST_DIR, 'assets')
-    if os.path.exists(assets_dir):
-        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-
+# Serve frontend from static folder if it exists
+if os.path.exists(STATIC_DIR):
     @app.get("/{catchall:path}")
     async def serve_frontend(catchall: str):
         # Ignore API calls
         if catchall.startswith("api"):
             raise HTTPException(status_code=404, detail="Not Found")
             
-        # Check if file exists in dist
-        file_path = os.path.join(DIST_DIR, catchall)
+        # Check if file exists in static
+        file_path = os.path.join(STATIC_DIR, catchall)
         if catchall and os.path.exists(file_path) and os.path.isfile(file_path):
             return FileResponse(file_path)
             
         # Otherwise serve index.html for SPA routing
-        index_path = os.path.join(DIST_DIR, 'index.html')
+        index_path = os.path.join(STATIC_DIR, 'index.html')
         if os.path.exists(index_path):
             return FileResponse(index_path)
             
