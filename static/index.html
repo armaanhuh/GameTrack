@@ -1120,7 +1120,11 @@
       <div x-show="selectedGame" class="fixed inset-0 z-[100] flex items-start justify-center pt-20 pb-10 px-4 overflow-y-auto animate-backdrop-in">
         <div @click.away="selectedGame = null" class="w-full max-w-2xl border border-border bg-surface p-8 relative flex flex-col my-auto animate-scale-in">
           <!-- Close -->
-          <button @click="selectedGame = null" class="absolute top-4 right-4 text-text-secondary hover:text-text hover:border-accent border border-border px-3 py-1 text-xs uppercase tracking-widest transition-colors">Close</button>
+          <button @click="selectedGame = null" class="absolute top-4 right-4 text-text-secondary hover:text-accent transition-all duration-200 hover:rotate-90 p-1" aria-label="Close modal">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
           <!-- Header -->
           <div class="text-center mb-6">
@@ -1284,6 +1288,13 @@
               this.searchOpen = true;
               this.searchQuery = '';
               this.searchResults = [];
+            }
+            if (e.key === 'Escape') {
+              if (this.selectedGame) {
+                this.selectedGame = null;
+              } else if (this.searchOpen) {
+                this.searchOpen = false;
+              }
             }
           });
 
