@@ -137,18 +137,16 @@
     }
 
     /* Premium Animations */
-    @keyframes fadeInSlideUp {
+    @keyframes fadeIn {
       from {
         opacity: 0;
-        transform: translateY(12px);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
       }
     }
     .animate-page-in {
-      animation: fadeInSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: fadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes scaleIn {
@@ -1229,7 +1227,13 @@
         apiKey: localStorage.getItem('gt_api_key') || '',
         theme: localStorage.getItem('gt_theme') || 'dark',
         platformsOwned: localStorage.getItem('gt_platforms_owned') ? JSON.parse(localStorage.getItem('gt_platforms_owned')) : ['steam', 'epic', 'xbox'],
-        currentTab: 'dashboard',
+        currentTab: (function() {
+          const hash = window.location.hash;
+          if (hash === '#/library') return 'library';
+          if (hash === '#/platforms') return 'platforms';
+          if (hash === '#/analytics') return 'analytics';
+          return 'dashboard';
+        })(),
         
         // Setup API Key
         apiKeyInput: '',
@@ -1288,9 +1292,23 @@
             lucide.createIcons();
           });
 
-          this.$watch('currentTab', () => {
-            this.$nextTick(() => lucide.createIcons());
+          // Sync routing hash on load/navigation
+          window.addEventListener('hashchange', () => {
+            const hash = window.location.hash;
+            if (hash === '#/library') this.currentTab = 'library';
+            else if (hash === '#/platforms') this.currentTab = 'platforms';
+            else if (hash === '#/analytics') this.currentTab = 'analytics';
+            else this.currentTab = 'dashboard';
           });
+
+          this.$watch('currentTab', (val) => {
+            this.$nextTick(() => lucide.createIcons());
+            const hash = val === 'dashboard' ? '#/dashboard' : `#/${val === 'library' ? 'library' : val}`;
+            if (window.location.hash !== hash) {
+              window.location.hash = hash;
+            }
+          });
+
           this.$watch('hasApiKey', () => {
             this.$nextTick(() => lucide.createIcons());
           });
