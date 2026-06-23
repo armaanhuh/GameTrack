@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3001/api/library';
+const API_URL = '/api/library';
 
 /**
  * Fetch the game library list from backend server
